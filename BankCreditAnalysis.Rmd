@@ -1,0 +1,183 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# importing the data and reading the top 10 records using head() function
+cred_data <- read.csv(file.choose(), stringsAsFactors = TRUE)
+head(cred_data,10)
+str(cred_data)
+```
+
+```{r}
+# Checking the summary of data an finding histogram of target variable. Most people are having account balance below 500.
+summary(cred_data)
+hist(cred_data$Balance)
+```
+
+
+# Question 1: Linear Regression of Balance with individual explanatory variables.
+
+```{r}
+# Linear Regression: Balance vs Income
+lr_incomeBal <- lm(Balance~Income, data = cred_data)
+summary(lr_incomeBal)
+plot(Balance~Income,data = cred_data, main = 'Balance vs Income')
+abline(lr_incomeBal)
+```
+```{r}
+# Linear Regression: Balance vs Limit
+lr_limitBal <- lm(Balance~Limit, data = cred_data)
+summary(lr_limitBal)
+plot(Balance~Limit,data = cred_data, main = 'Balance vs Limit')
+abline(lr_limitBal)
+```
+
+
+
+
+```{r}
+# Linear Regression: Balance vs CreditRating
+lr_credratBal <- lm(Balance~CreditRating, data = cred_data)
+summary(lr_credratBal)
+plot(Balance~CreditRating,data = cred_data, main = 'Balance vs CreditRating')
+abline(lr_credratBal)
+```
+
+
+```{r}
+# Linear Regression: Balance vs Age
+lr_ageBal <- lm(Balance~Age, data = cred_data)
+summary(lr_ageBal)
+plot(Balance~Age,data = cred_data, main = 'Balance vs Age')
+abline(lr_ageBal)
+```
+
+
+```{r}
+# Linear Regression: Balance vs Eduation
+lr_eduBal <- lm(Balance~Education, data = cred_data)
+summary(lr_eduBal)
+plot(Balance~Education,data = cred_data, main = 'Balance vs Education')
+abline(lr_eduBal)
+```
+
+
+
+```{r}
+# Linear Regression: Balance vs Student
+# converting categorical variable Student to numeric variable
+cred_data$Student<-factor(as.numeric(cred_data$Student))
+
+# performing linear regression
+lr_studentBal <- lm(Balance~Student, data = cred_data)
+summary(lr_studentBal)
+plot(Balance~Student,data = cred_data, main = 'Balance vs Student')
+abline(lr_studentBal)
+```
+
+
+```{r}
+# Linear Regression: Balance vs Married
+# converting categorical variable Student to numeric variable
+cred_data$Married<-factor(as.numeric(cred_data$Married))
+
+# performing linear regression
+lr_marriedBal <- lm(Balance~Married, data = cred_data)
+summary(lr_marriedBal)
+plot(Balance~Married,data = cred_data, main = 'Balance vs Married')
+abline(lr_marriedBal)
+```
+
+Ranking the covariates by the highest R2 order
+
+Credit Rating: 0.7458484
+
+Limit: 0.7425222
+
+Income: 0.2149773
+
+Student: 0.06709009
+
+Married: 3.218849e-05
+
+Education: 6.498901e-05
+
+Age: 3.367661e-06
+
+From the above regression models and their R2 values, it is obtained that Credit Rating and Limit are having
+the highest R2 value.
+
+
+# Question 2: Full Model Regression
+
+```{r}
+# Regression with full model including all variables as explanatory variables
+lr_full <- lm(Balance ~ ., data = cred_data)
+summary(lr_full)
+```
+
+
+Here we can see that RSE is very low as compared to all linear models obtained by regressing individual variables with dependent variables.
+
+Also, Looking a p-values, it seems like Income, Limit, CreditRating, Student and somewhat Age are significant variables indeciding how well the value of Balance can be predicted.
+
+We can verify this by building a model excluding Education and Married.
+
+```{r}
+# Linear model to verify the significant variables
+lr_onlysignificant <- lm(Balance ~ Income + Limit + Student + CreditRating + Age, data = cred_data)
+summary(lr_onlysignificant)
+```
+
+From above result, we can see that RSE has not changed a lot by removing Education and Married. This verifies that rest of the variables are the only significant ones.
+
+
+
+
+# Question 3: Deciding whether CreditRating is statistically significant or not for a perfectly fitting linear model.
+
+For this, we will construct a linear model without Credit Rating and compare its coefficients with full model
+
+```{r}
+# Regression with full model excluding  CreditRating.
+lr_nocred <- lm(Balance ~ Income + Limit + Student + Age + Education + Married, data = cred_data)
+summary(lr_nocred)
+```
+
+
+Comparing the two models: lr_full and lr_nocred,
+
+            lr_full       lr_nocred
+RSE           100.8           104.2
+DOF           392             393
+Median      -12.67          -18.68
+Adj. R2       0.952           0.948
+
+
+lr_full is a linear model with CreditRating included as a regressor
+lr_nocred is a linear model with CreditRating not included as a regressor
+
+It can be seen from above comparision that RSE has increased by ~4, Ajusted R2 has decreased by 0.004 and median has moved a little bit away from zero by 6.
+
+This means the model is not the best fit without credit rating but it is not having a major impact on the results. Even without third party credit rating score, internal bank data can efficiently predict the balance of a new coming customer. The models can also be further optimized by applying regularization methods. 
+
+# Business recommendation: 
+If the credit scoring system is really expensive for the business, it can be excluded from the analysis given the customer base is not very wide and pose a large amount of financial risk for the bank if special interest rates are accidentally given to a customer. In this case, a cost analysis is necessary to determine if savings from not taking the credit rating score will be more or from not ending up giving special interest rates to unpromising customers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
